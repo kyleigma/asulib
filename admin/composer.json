@@ -1,0 +1,12 @@
+{
+    "name": "library/admin",
+    "description": "A library borrowing management system.",
+    "autoload": {
+        "psr-4": {
+            "Library\\Admin\\": "src/"
+        }
+    },
+    "require": {
+        "phpoffice/phpspreadsheet": "^3.6"
+    }
+}
