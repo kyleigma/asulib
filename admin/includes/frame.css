@@ -1,0 +1,53 @@
+
+/* Sidebar */
+#accordionSidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 249px; /* Adjust the width to match expanded sidebar width */
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1000;
+  transition: width 0.5s ease; /* Smooth transition for width change */
+}
+
+/* Collapsed Sidebar */
+#accordionSidebar.collapsed {
+  width: 104px; /* Width for collapsed sidebar */
+  padding: 0;
+  overflow-y: visible;
+}
+
+/* Content Wrapper */
+#content-wrapper {
+  margin-left: 249px; /* Align content next to expanded sidebar */
+  transition: margin-left 0.5s ease, width 0.5s ease; /* Smooth transition for margin and width */
+  overflow-y: auto;
+  height: 100vh;
+  padding-top: 0; /* Prevent overlap with topbar */
+}
+
+/* Content Wrapper for Collapsed Sidebar */
+#content-wrapper.collapsed {
+  margin-left: 104px; /* Align content next to collapsed sidebar */
+  width: calc(100% - 104px); /* Dynamic width adjustment */
+}
+
+/* Topbar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1050; /* Ensure topbar stays above other content */
+  width: calc(100% - 249px); /* Align width with sidebar */
+  transition: width 0.5s ease; /* Smooth transition for width change */
+}
+
+#accordionSidebar.collapsed + #content-wrapper .topbar {
+  width: calc(100% - 104px); /* Adjust width for collapsed sidebar */
+}
+
+/* Scrollbar Styling */
+.scrollbar {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
