@@ -14,18 +14,16 @@ $is_student = false;
 $faculty_id = null;
 
 if (isset($_SESSION['student'])) {
-    $user_id = $_SESSION['student'];  // Use the student ID from the session
+    $user_id = $_SESSION['student'];
     $is_student = true;
 } elseif (isset($_SESSION['faculty'])) {
-    $user_id = $_SESSION['faculty'];  // Use the faculty ID from the session
-    
-    // Fetch the faculty_id from the faculty table based on the session's faculty ID
-    $faculty_sql = "SELECT id FROM faculty WHERE faculty_id = '$user_id'";  // Assuming `faculty_id` is the column in the faculty table
+    $user_id = $_SESSION['faculty'];
+    $faculty_sql = "SELECT id FROM faculty WHERE faculty_id = '$user_id'";
     $faculty_result = $conn->query($faculty_sql);
     
     if ($faculty_result->num_rows > 0) {
         $faculty_row = $faculty_result->fetch_assoc();
-        $faculty_id = $faculty_row['id'];  // Retrieve the `id` of the faculty (primary key)
+        $faculty_id = $faculty_row['id'];
     } else {
         $_SESSION['error'] = 'Invalid faculty ID.';
         header('Location: catalog.php');
@@ -46,12 +44,10 @@ WHERE ";
 if ($is_student) {
     $request_sql .= "r.student_id = '$user_id'";
 } else {
-    // Use the retrieved faculty_id in the query
     $request_sql .= "r.faculty_id = '$faculty_id'";
 }
 
 $result_query = $conn->query($request_sql);
-
 ?>
 
 <body id="page-top">
@@ -90,52 +86,35 @@ $result_query = $conn->query($request_sql);
                                                 <th>Request Date</th>
                                                 <th>Accession Number</th>
                                                 <th>Title</th>
-                                                <th id="decision-date-header" style="display: none;">Decision Date</th> <!-- Initially hidden -->
+                                                <th>Decision Date</th>
                                                 <th>Status</th>
                                             </tr>
                                         </thead>
                                         <tbody class="text-center">
                                             <?php
-                                                $decision_date_found = false; // Track if any decision date exists
-
                                                 while ($row = $result_query->fetch_assoc()) {
-                                                    // Get the status and approval/decline date
                                                     $status = ucfirst($row['status']);
                                                     $badge_class = '';
-                                                    $approval_decline_date = '';
+                                                    $decision_date = '-';
 
-                                                    // Determine the badge class and date of approval/decline
+                                                    // Determine badge class and decision date
                                                     if ($row['status'] == 'approved') {
-                                                        $badge_class = 'badge-success';  // Green for approved
-                                                        $approval_decline_date = date('M d, Y', strtotime($row['decision_date']));
+                                                        $badge_class = 'badge-success';
+                                                        $decision_date = date('M d, Y', strtotime($row['decision_date']));
                                                     } elseif ($row['status'] == 'declined') {
-                                                        $badge_class = 'badge-danger';   // Red for declined
-                                                        $approval_decline_date = date('M d, Y', strtotime($row['decision_date']));
+                                                        $badge_class = 'badge-danger';
+                                                        $decision_date = date('M d, Y', strtotime($row['decision_date']));
                                                     } elseif ($row['status'] == 'pending') {
-                                                        $badge_class = 'badge-warning';  // Yellow for pending
+                                                        $badge_class = 'badge-warning';
                                                     } else {
-                                                        $badge_class = 'badge-secondary'; // Grey for unknown status
+                                                        $badge_class = 'badge-secondary';
                                                     }
 
-                                                    // If there's a decision date, flag it as found
-                                                    if (!empty($row['decision_date'])) {
-                                                        $decision_date_found = true;
-                                                    }
-
-                                                    // Display the row with the new date of approval/decline column
                                                     echo "<tr>";
                                                     echo "<td>" . date('M d, Y h:i A', strtotime($row['date'])) . "</td>";
                                                     echo "<td>" . $row['accession'] . "</td>";
                                                     echo "<td style='text-align: justify; text-justify: inter-word;'>" . $row['title'] . "</td>";
-
-                                                    // If status is not pending, display the decision date; otherwise, leave empty
-                                                    if ($row['status'] != 'pending') {
-                                                        echo "<td>" . ($approval_decline_date ?: '-') . "</td>";  // Display decision date or fallback to '-'
-                                                    } else {
-                                                        echo "<td>-</td>";  // Display hyphen for pending status
-                                                    }
-
-                                                    // Display status with corresponding badge
+                                                    echo "<td>" . $decision_date . "</td>";
                                                     echo "<td><span class='badge $badge_class'>$status</span></td>";
                                                     echo "</tr>";
                                                 }
@@ -155,14 +134,5 @@ $result_query = $conn->query($request_sql);
     
     <?php include 'includes/footer.php'; ?>
     <?php include 'includes/scripts.php'; ?>
-    <script>
-    // Check if any decision date is found, and toggle the visibility of the header
-    if (<?php echo $decision_date_found ? 'true' : 'false'; ?>) {
-        document.getElementById('decision-date-header').style.display = '';
-    } else {
-        document.getElementById('decision-date-header').style.display = 'none';
-    }
-    </script>
-
 </body>
 </html>
