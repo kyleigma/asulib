@@ -96,12 +96,7 @@
 
         </nav>
 
-<<<<<<< HEAD
        
-=======
-        <!-- Offset to push content below the fixed navbar -->
-        <div style="padding-top: 105px;"></div> <!-- Adjust padding as needed -->
->>>>>>> a7198e3f67bf1677812dab854b4fc18858f1709c
 
         <?php include 'includes/login_modal.php'; ?>
         <?php include 'includes/logout_modal.php'; ?>
