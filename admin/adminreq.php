@@ -176,7 +176,7 @@
 
                                             <td><span class='badge <?php echo $badge_class; ?>'><?php echo $status; ?></span></td>
                                             <td class='text-center'>
-                                                <?php if ($row['status'] !== 'approved'): ?>
+                                                <?php if ($row['status'] !== 'approved' && $row['status'] !== 'declined'): ?>
                                                     <a href="#approve<?php echo $row['req_id']; ?>" data-toggle="modal" class="btn btn-sm btn-success mb-2"><span class="fas fa-check"></span> </a>
                                                     <a href="#decline<?php echo $row['req_id']; ?>" data-toggle="modal" class="btn btn-sm btn-danger mb-2"><span class="fas fa-ban"></span> </a>
                                                 <?php else: ?>
