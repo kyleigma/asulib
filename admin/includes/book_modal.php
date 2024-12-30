@@ -244,7 +244,7 @@ while ($qry2 = mysqli_fetch_array($qry)) {
       </div>
       <div class="modal-body">
         <!-- File upload form inside modal -->
-        <form action="import_students.php" method="post" enctype="multipart/form-data">
+        <form action="import_books.php" method="post" enctype="multipart/form-data">
           <div class="form-group">
             <label for="excel_file" class="control-label">Select Spreadsheet File:</label>
             <input type="file" name="excel_file" id="excel_file" accept=".xlsx, .xls" required class="form-control">

@@ -31,7 +31,7 @@
                         echo "
                             <div class='alert alert-danger alert-dismissible'>
                             <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
-                            <h5><i class='icon fa fa-warning'></i> Error!</h5>
+                            <h5><i class='icon fa fa-exclamation-triangle'></i> Error!</h5>
                             ".$_SESSION['error']."
                             </div>
                         ";
@@ -63,29 +63,36 @@
                     <div class="card shadow mb-4">
                         <div class="card-body">
                         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                            <?php if ($role != 1):?>
-                                <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-flat"><i class="fa fa-plus"></i> New</a>
-                                <a href="#importModal" data-toggle="modal" class="btn btn-primary btn-flat"><i class="fa fa-sign-in-alt"></i> Import</a>
+                        <!-- Buttons Section -->
+                        <div class="d-flex">
+                            <?php if ($role != 1): ?>
+                                <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-flat mr-2">
+                                    <i class="fa fa-plus"></i> New
+                                </a>
+                                <a href="#importModal" data-toggle="modal" class="btn btn-primary btn-flat">
+                                    <i class="fa fa-sign-in-alt"></i> Import
+                                </a>
                             <?php endif; ?>
-
-                            <!-- Dropdown Filter for Category -->
-                            <form method="GET" action="">
-                                <div class="form-group mb-3 d-flex align-items-center">
-                                    <label for="category_filter" class="mr-2 mb-0" style="line-height: 2.5;">Filter:</label>
-                                    <select class="form-control" id="category_filter" name="category_filter" onchange="this.form.submit()">
-                                        <option value="" <?php echo (!isset($_GET['category_filter']) || $_GET['category_filter'] == '') ? 'selected' : ''; ?>>All Categories</option>
-                                        <?php
-                                            // Fetch categories from the database
-                                            $category_qry = mysqli_query($conn, "SELECT * FROM category");
-                                            while ($category = mysqli_fetch_array($category_qry)) {
-                                                $selected = (isset($_GET['category_filter']) && $_GET['category_filter'] == $category['id']) ? 'selected' : '';
-                                                echo "<option value='" . $category['id'] . "' $selected>" . $category['name'] . "</option>";
-                                            }
-                                        ?>
-                                    </select>
-                                </div>
-                            </form>
                         </div>
+
+                        <!-- Dropdown Filter for Category -->
+                        <form method="GET" action="" class="d-flex align-items-center">
+                            <label for="category_filter" class="mr-2 mb-0" style="line-height: 2.5;">Filter:</label>
+                            <select class="form-control" id="category_filter" name="category_filter" onchange="this.form.submit()">
+                                <option value="" <?php echo (!isset($_GET['category_filter']) || $_GET['category_filter'] == '') ? 'selected' : ''; ?>>
+                                    All Categories
+                                </option>
+                                <?php
+                                    // Fetch categories from the database
+                                    $category_qry = mysqli_query($conn, "SELECT * FROM category");
+                                    while ($category = mysqli_fetch_array($category_qry)) {
+                                        $selected = (isset($_GET['category_filter']) && $_GET['category_filter'] == $category['id']) ? 'selected' : '';
+                                        echo "<option value='" . $category['id'] . "' $selected>" . $category['name'] . "</option>";
+                                    }
+                                ?>
+                            </select>
+                        </form>
+                    </div>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
