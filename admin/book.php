@@ -65,6 +65,7 @@
                         <div class="d-sm-flex align-items-center justify-content-between mb-4">
                             <?php if ($role != 1):?>
                                 <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-flat"><i class="fa fa-plus"></i> New</a>
+                                <a href="#importModal" data-toggle="modal" class="btn btn-primary btn-flat"><i class="fa fa-sign-in-alt"></i> Import</a>
                             <?php endif; ?>
 
                             <!-- Dropdown Filter for Category -->

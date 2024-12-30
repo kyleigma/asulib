@@ -57,10 +57,7 @@ $result_query = $conn->query($request_sql);
 <body id="page-top">
     <div id="wrapper">
         <?php include 'includes/navbar.php'; ?>
-<<<<<<< HEAD
         <div style="padding-top: 105px;"></div>
-=======
->>>>>>> a7198e3f67bf1677812dab854b4fc18858f1709c
         
         <div>
             <!-- Begin Page Content -->

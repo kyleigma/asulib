@@ -231,3 +231,30 @@ while ($qry2 = mysqli_fetch_array($qry)) {
 </div>
 <?php }?>
 
+<!-- Import Records -->
+
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title"><b>Import Records</b></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- File upload form inside modal -->
+        <form action="import_students.php" method="post" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="excel_file" class="control-label">Select Spreadsheet File:</label>
+            <input type="file" name="excel_file" id="excel_file" accept=".xlsx, .xls" required class="form-control">
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+        <button type="submit" name="import" class="btn btn-primary btn-flat"><i class="fa fa-upload"></i> Import</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
