@@ -25,10 +25,14 @@
                     </div>
 
                     <?php
-                        // Automatically decline requests older than 1 day
-                        $auto_decline_sql = "UPDATE requests SET status = 'declined' WHERE status = 'pending' AND request_date < NOW() - INTERVAL 1 DAY";
+                        // Automatically decline requests older than 1 day and set decision_date
+                        $auto_decline_sql = "
+                            UPDATE requests 
+                            SET status = 'declined', decision_date = NOW() 
+                            WHERE status = 'pending' 
+                            AND request_date < NOW() - INTERVAL 1 DAY";
+
                         if ($conn->query($auto_decline_sql)) {
-                            // Optional: Success message if you want to display it.
                             $_SESSION['success'] = 'Old requests have been automatically declined.';
                         } else {
                             $_SESSION['error'] = 'Failed to auto-decline old requests: ' . $conn->error;
