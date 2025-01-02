@@ -25,17 +25,18 @@
                     </div>
 
                     <?php
-                        // Automatically decline requests older than 1 day and set decision_date
+                        // Automatically decline requests older than 1 day and set decision_date, also update book status to '0' (available)
                         $auto_decline_sql = "
-                            UPDATE requests 
-                            SET status = 'declined', decision_date = NOW() 
-                            WHERE status = 'pending' 
-                            AND request_date < NOW() - INTERVAL 1 DAY";
+                            UPDATE requests r
+                            JOIN books b ON r.book_id = b.id
+                            SET r.status = 'declined', r.decision_date = NOW(), b.status = '0'
+                            WHERE r.status = 'pending' 
+                            AND r.request_date < NOW() - INTERVAL 1 DAY";
 
                         if ($conn->query($auto_decline_sql)) {
-                            $_SESSION['success'] = 'Old requests have been automatically declined.';
+                            $_SESSION['success'] = 'Old requests have been automatically declined and books are marked as available.';
                         } else {
-                            $_SESSION['error'] = 'Failed to auto-decline old requests: ' . $conn->error;
+                            $_SESSION['error'] = 'Failed to auto-decline old requests and update book statuses: ' . $conn->error;
                         }
 
                         if(isset($_SESSION['error'])){
