@@ -3,8 +3,28 @@ include 'includes/session.php';
 include 'includes/conn.php';
 include 'includes/header.php';
 
-// Get the current year
-$currentYear = date('Y');
+// Define the range of years
+$minYear = 2024;
+$maxYear = 2050;
+
+// Get the current year or the selected year from the session/URL
+if (isset($_GET['year']) && $_GET['year'] >= $minYear && $_GET['year'] <= $maxYear) {
+    $selectedYear = $_GET['year'];
+    $_SESSION['selectedYear'] = $selectedYear;
+} else {
+    $selectedYear = isset($_SESSION['selectedYear']) ? $_SESSION['selectedYear'] : date('Y');
+}
+
+// Fetch distinct years from the borrowing and returns data
+$years = range($minYear, $maxYear);
+
+// Fetch borrowing statistics filtered by the selected year
+$borrowStatsQuery = "SELECT * FROM borrow WHERE YEAR(date_borrow) = '$selectedYear'";
+$borrowStats = $conn->query($borrowStatsQuery);
+
+// Fetch return statistics filtered by the selected year
+$returnStatsQuery = "SELECT * FROM returns WHERE YEAR(date_return) = '$selectedYear'";
+$returnStats = $conn->query($returnStatsQuery);
 
 // Define the category ranges
 $categories = [
@@ -34,11 +54,10 @@ while ($program_row = mysqli_fetch_assoc($programs_result)) {
 // Add 'FACULTY' as a special category (removed 'ALL')
 $programs[] = 'FACULTY';
 
-// Get the selected month for borrowing and returns
-$selected_borrow_month = isset($_GET['borrow_month_filter']) ? $_GET['borrow_month_filter'] : date('m'); // Default to current month
-$selected_return_month = isset($_GET['return_month_filter']) ? $_GET['return_month_filter'] : date('m'); // Default to current month
+$selected_borrow_month = isset($_GET['borrow_month_filter']) ? $_GET['borrow_month_filter'] : 'ALL';
+$selected_return_month = isset($_GET['return_month_filter']) ? $_GET['return_month_filter'] : 'ALL';
 
-// Create an array for month names
+// Array of months for dropdown
 $months = [
     '01' => 'January',
     '02' => 'February',
@@ -51,16 +70,16 @@ $months = [
     '09' => 'September',
     '10' => 'October',
     '11' => 'November',
-    '12' => 'December'
+    '12' => 'December',
 ];
 
 // Initialize monthly returns and borrows array
 $returns_per_month = array_fill(0, 12, 0);
 $borrows_per_month = array_fill(0, 12, 0);
 
-// Set the start and end dates for the current year
-$start_date = "$currentYear-01-01";
-$end_date = "$currentYear-12-31";
+// Set the start and end dates for the selected year
+$start_date = "$selectedYear-01-01";
+$end_date = "$selectedYear-12-31";
 
 // Query for borrows in the selected year
 $borrow_sql = "SELECT MONTH(date_borrow) as month, COUNT(*) as total 
@@ -72,7 +91,7 @@ if ($selected_borrow_month !== 'ALL') {
     $borrow_sql .= " AND MONTH(date_borrow) = '$selected_borrow_month'";
 }
 
-$borrow_sql .= " GROUP BY MONTH(date_borrow)";
+$borrow_sql .= " GROUP BY MONTH(date_borrow )";
 $borrow_query = $conn->query($borrow_sql);
 
 while ($row = $borrow_query->fetch_assoc()) {
@@ -112,6 +131,22 @@ while ($row = $return_query->fetch_assoc()) {
                 </nav>
             </div>
 
+            <!-- Year Filter inside Card Body -->
+            <div class="card-header">
+                <div class="form-group mb-2">
+                    <form method="GET" action="statistics.php" class="d-flex align-items-center">
+                        <label for="year" class="mr-2 mb-0">Select Year:</label>
+                        <select name="year" id="year" class="form-control" onchange="this.form.submit()" style="width: auto;">
+                            <?php foreach ($years as $year): ?>
+                                <option value="<?php echo $year; ?>" <?php echo ($year == $selectedYear) ? 'selected' : ''; ?>>
+                                    <?php echo $year; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </form>
+                </div>
+            </div>
+
             <div class="card shadow mb-4">
                 <!-- Card Header - Accordion -->
                 <a href="#collapseCardExample" class="d-block card-header py-3" data-toggle="collapse"
@@ -121,22 +156,21 @@ while ($row = $return_query->fetch_assoc()) {
                 <!-- Card Content - Collapse -->
                 <div class="collapse show" id="collapseCardExample">
                     <div class="card-body">
-                        <!-- Filter form to select month -->
+                        <!-- Borrow Month Filter -->
                         <div class="form-group d-flex justify-content-between mb-4">
                             <form method="GET" action="" class="d-flex align-items-center">
                                 <label for="borrow_month_filter" class="mr-2 mb-0">Filter:</label>
                                 <select class="form-control" name="borrow_month_filter" id="borrow_month_filter" onchange="this.form.submit()" style="width: auto;">
-                                    <option value="ALL" <?php echo ($selected_borrow_month === 'ALL') ? 'selected' : ''; ?>>ALL</option> <!-- Added ALL option -->
+                                    <option value="ALL" <?php echo ($selected_borrow_month === 'ALL') ? 'selected' : ''; ?>>ALL</option>
                                     <?php
-                                    // Create the month filter dropdown options for borrowing
                                     foreach ($months as $month_key => $month_name) {
-                                        // Remove ALL MONTHS option
-                                        if ($month_name === 'ALL MONTHS') continue; // Skip this option
                                         $selected = ($month_key == $selected_borrow_month) ? 'selected' : '';
                                         echo "<option value='$month_key' $selected>$month_name</option>";
                                     }
                                     ?>
                                 </select>
+                                <!-- Preserve return_month_filter -->
+                                <input type="hidden" name="return_month_filter" value="<?php echo $selected_return_month; ?>">
                             </form>
                             <a href="print_borrow_statistics.php?borrow_month_filter=<?php echo $selected_borrow_month; ?>" class="btn btn-secondary" onclick="window.open(this.href, '_blank', 'width=1000, height=600'); return false;">
                                 <i class="fas fa-print"></i> Print
@@ -144,13 +178,11 @@ while ($row = $return_query->fetch_assoc()) {
                         </div>
 
                         <div class="table-responsive mt-3">
-                            <!-- Circulation Statistics Table -->
                             <table class="table table-bordered table-striped" id="dataTableStats1" width="100%" cellspacing="0">
                                 <thead class="text-center">
                                     <tr>
                                         <th>CLASS</th>
                                         <?php
-                                        // Generate table headers dynamically based on programs and faculty
                                         foreach ($programs as $program) {
                                             echo "<th>$program</th>";
                                         }
@@ -160,23 +192,20 @@ while ($row = $return_query->fetch_assoc()) {
                                 </thead>
                                 <tbody class="text-center">
                                     <?php
-                                    // Loop through each category range and display counts
                                     foreach ($categories as $category_label => $range) {
                                         echo "<tr>
                                                 <td>$category_label</td>";
-                                        $total_borrowed_per_category = 0; // Initialize category total
+                                        $total_borrowed_per_category = 0;
 
-                                        // Loop through each program and calculate counts for each category
                                         foreach ($programs as $program) {
                                             if ($program === 'FACULTY') {
-                                                // Count books borrowed by faculty in the category range for the selected month
                                                 $faculty_borrow_query = "SELECT COUNT(borrow.id) as count
                                                                         FROM borrow
                                                                         JOIN books ON borrow.book_id = books.id
                                                                         WHERE books.category_no BETWEEN {$range[0]} AND {$range[1]} 
-                                                                            AND borrow.student_id IS NULL";
+                                                                            AND borrow.student_id IS NULL
+                                                                            AND YEAR(borrow.date_borrow) = '$selectedYear'";
 
-                                                // Adjust query based on selected month
                                                 if ($selected_borrow_month !== 'ALL') {
                                                     $faculty_borrow_query .= " AND MONTH(borrow.date_borrow) = '$selected_borrow_month'";
                                                 }
@@ -185,18 +214,15 @@ while ($row = $return_query->fetch_assoc()) {
                                                 $faculty_borrow_row = mysqli_fetch_assoc($faculty_borrow_result);
                                                 $borrowed_count = $faculty_borrow_row['count'];
                                             } else {
-                                                // Get program ID based on the program code
                                                 $program_id = array_search($program, $program_codes);
-
-                                                // Count books borrowed by students in the category range and program for the selected month
                                                 $program_borrow_query = "SELECT COUNT(borrow.id) as count
                                                                         FROM borrow
                                                                         JOIN books ON borrow.book_id = books.id
                                                                         JOIN students ON borrow.student_id = students.id
                                                                         WHERE books.category_no BETWEEN {$range[0]} AND {$range[1]} 
-                                                                            AND students.program_id = '$program_id'";
+                                                                            AND students.program_id = '$program_id'
+                                                                            AND YEAR(borrow.date_borrow) = '$selectedYear'";
 
-                                                // Adjust query based on selected month
                                                 if ($selected_borrow_month !== 'ALL') {
                                                     $program_borrow_query .= " AND MONTH(borrow.date_borrow) = '$selected_borrow_month'";
                                                 }
@@ -206,33 +232,29 @@ while ($row = $return_query->fetch_assoc()) {
                                                 $borrowed_count = $program_borrow_row['count'];
                                             }
 
-                                            // Display borrowed count for each program, and replace 0 with empty cells
                                             $display_value = ($borrowed_count == 0) ? '' : $borrowed_count;
                                             echo "<td>$display_value</td>";
                                             $total_borrowed_per_category += $borrowed_count;
                                         }
 
-                                        // Display total borrowed books for the current category, replace 0 with empty cells
                                         $display_total = ($total_borrowed_per_category == 0) ? '0' : $total_borrowed_per_category;
-                                        echo "<td><strong>$display_total</strong></td>"; // Make total bold
+                                        echo "<td><strong>$display_total</strong></td>";
                                         echo "</tr>";
                                     }
 
-                                    // Display total row
                                     echo "<tr>
                                             <td><strong>TOTAL</strong></td>";
 
-                                    $grand_total = 0; // Initialize grand total for all programs
+                                    $grand_total = 0;
 
                                     foreach ($programs as $program) {
                                         if ($program === 'FACULTY') {
-                                            // Get total books borrowed by faculty for the selected month
                                             $faculty_total_query = "SELECT COUNT(borrow.id) as count
                                                                     FROM borrow
                                                                     JOIN books ON borrow.book_id = books.id
-                                                                    WHERE borrow.student_id IS NULL";
+                                                                    WHERE borrow.student_id IS NULL
+                                                                    AND YEAR(borrow.date_borrow) = '$selectedYear'";
 
-                                            // Adjust query based on selected month
                                             if ($selected_borrow_month !== 'ALL') {
                                                 $faculty_total_query .= " AND MONTH(borrow.date_borrow) = '$selected_borrow_month'";
                                             }
@@ -241,16 +263,13 @@ while ($row = $return_query->fetch_assoc()) {
                                             $faculty_total_row = mysqli_fetch_assoc($faculty_total_result);
                                             $total_borrowed = $faculty_total_row['count'];
                                         } else {
-                                            // Get program ID based on program code
                                             $program_id = array_search($program, $program_codes);
-
-                                            // Get total books borrowed by students in the program for the selected month
                                             $program_total_query = "SELECT COUNT(borrow.id) as count
                                                                     FROM borrow
                                                                     JOIN students ON borrow.student_id = students.id
-                                                                    WHERE students.program_id = '$program_id'";
+                                                                    WHERE students.program_id = '$program_id'
+                                                                    AND YEAR(borrow.date_borrow) = '$selectedYear'";
 
-                                            // Adjust query based on selected month
                                             if ($selected_borrow_month !== 'ALL') {
                                                 $program_total_query .= " AND MONTH(borrow.date_borrow) = '$selected_borrow_month'";
                                             }
@@ -260,15 +279,13 @@ while ($row = $return_query->fetch_assoc()) {
                                             $total_borrowed = $program_total_row['count'];
                                         }
 
-                                        // Display total borrowed count for each program/faculty, show 0 if applicable
-                                        $display_value = ($total_borrowed == 0) ? '0' : $total_borrowed; // Show 0
-                                        echo "<td><strong>$display_value</strong></td>"; // Make total bold
+                                        $display_value = ($total_borrowed == 0) ? '0' : $total_borrowed;
+                                        echo "<td><strong>$display_value</strong></td>";
                                         $grand_total += $total_borrowed;
                                     }
 
-                                    // Display the grand total, show 0 if applicable
-                                    $display_grand_total = ($grand_total == 0) ? '0' : $grand_total; // Show 0
-                                    echo "<td><strong>$display_grand_total</strong></td>"; // Make grand total bold
+                                    $display_grand_total = ($grand_total == 0) ? '0' : $grand_total;
+                                    echo "<td><strong>$display_grand_total</strong></td>";
                                     echo '</tr>';
                                     ?>
                                 </tbody>
@@ -279,45 +296,39 @@ while ($row = $return_query->fetch_assoc()) {
             </div>
 
             <div class="card shadow mb-4">
-                <!-- Card Header - Accordion -->
                 <a href="#collapseCardExample1" class="d-block card-header py-3" data-toggle="collapse"
-                    role="button" aria-expanded="true" aria-controls="collapseCardExample1">
+                    role=" button" aria-expanded="true" aria-controls="collapseCardExample1">
                     <h5 class="m-0 font-weight-bold text-primary">Returns</h5>
                 </a>
-                <!-- Card Content - Collapse -->
                 <div class="collapse show" id="collapseCardExample1">
                     <div class="card-body">
-                        <!-- Filter form to select month -->
+                        <!-- Return Month Filter -->
                         <div class="form-group d-flex justify-content-between mb-4">
                             <form method="GET" action="" class="d-flex align-items-center">
                                 <label for="return_month_filter" class="mr-2 mb-0">Filter:</label>
                                 <select class="form-control" name="return_month_filter" id="return_month_filter" onchange="this.form.submit()" style="width: auto;">
-                                    <option value="ALL" <?php echo ($selected_return_month === 'ALL') ? 'selected' : ''; ?>>ALL</option> <!-- Added ALL option -->
+                                    <option value="ALL" <?php echo ($selected_return_month === 'ALL') ? 'selected' : ''; ?>>ALL</option>
                                     <?php
-                                    // Create the month filter dropdown options for returns
                                     foreach ($months as $month_key => $month_name) {
-                                        // Remove ALL MONTHS option
-                                        if ($month_name === 'ALL MONTHS') continue; // Skip this option
                                         $selected = ($month_key == $selected_return_month) ? 'selected' : '';
                                         echo "<option value='$month_key' $selected>$month_name</option>";
                                     }
                                     ?>
                                 </select>
+                                <!-- Preserve borrow_month_filter -->
+                                <input type="hidden" name="borrow_month_filter" value="<?php echo $selected_borrow_month; ?>">
                             </form>
                             <a href="print_return_statistics.php?return_month_filter=<?php echo $selected_return_month; ?>" class="btn btn-secondary" onclick="window.open(this.href, '_blank', 'width=1000, height=600'); return false;">
                                 <i class="fas fa-print"></i> Print
                             </a>
                         </div>
 
-
                         <div class="table-responsive mt-3">
-                            <!-- Returns Statistics Table -->
                             <table class="table table-bordered table-striped" id="dataTableStats2" width="100%" cellspacing="0">
                                 <thead class="text-center">
                                     <tr>
                                         <th>CLASS</th>
                                         <?php
-                                        // Generate table headers dynamically based on programs and faculty
                                         foreach ($programs as $program) {
                                             echo "<th>$program</th>";
                                         }
@@ -327,23 +338,20 @@ while ($row = $return_query->fetch_assoc()) {
                                 </thead>
                                 <tbody class="text-center">
                                     <?php
-                                    // Loop through each category range and display counts
                                     foreach ($categories as $category_label => $range) {
                                         echo "<tr>
                                                 <td>$category_label</td>";
-                                        $total_returned_per_category = 0; // Initialize category total
+                                        $total_returned_per_category = 0;
 
-                                        // Loop through each program and calculate counts for each category
                                         foreach ($programs as $program) {
                                             if ($program === 'FACULTY') {
-                                                // Count books returned by faculty in the category range for the selected month
                                                 $faculty_return_query = "SELECT COUNT(returns.id) as count
                                                                         FROM returns
                                                                         JOIN books ON returns.book_id = books.id
                                                                         WHERE books.category_no BETWEEN {$range[0]} AND {$range[1]} 
-                                                                            AND returns.student_id IS NULL";
+                                                                            AND returns.student_id IS NULL
+                                                                            AND YEAR(returns.date_return) = '$selectedYear'";
 
-                                                // Adjust query based on selected month
                                                 if ($selected_return_month !== 'ALL') {
                                                     $faculty_return_query .= " AND MONTH(returns.date_return) = '$selected_return_month'";
                                                 }
@@ -352,18 +360,15 @@ while ($row = $return_query->fetch_assoc()) {
                                                 $faculty_return_row = mysqli_fetch_assoc($faculty_return_result);
                                                 $returned_count = $faculty_return_row['count'];
                                             } else {
-                                                // Get program ID based on the program code
                                                 $program_id = array_search($program, $program_codes);
-
-                                                // Count books returned by students in the category range and program for the selected month
                                                 $program_return_query = "SELECT COUNT(returns.id) as count
                                                                         FROM returns
                                                                         JOIN books ON returns.book_id = books.id
                                                                         JOIN students ON returns.student_id = students.id
                                                                         WHERE books.category_no BETWEEN {$range[0]} AND {$range[1]} 
-                                                                            AND students.program_id = '$program_id'";
+                                                                            AND students.program_id = '$program_id'
+                                                                            AND YEAR(returns.date_return) = '$selectedYear'";
 
-                                                // Adjust query based on selected month
                                                 if ($selected_return_month !== 'ALL') {
                                                     $program_return_query .= " AND MONTH(returns.date_return) = '$selected_return_month'";
                                                 }
@@ -373,33 +378,29 @@ while ($row = $return_query->fetch_assoc()) {
                                                 $returned_count = $program_return_row['count'];
                                             }
 
-                                            // Display returned count for each program, and replace 0 with empty cells
                                             $display_value = ($returned_count == 0) ? '' : $returned_count;
                                             echo "<td>$display_value</td>";
                                             $total_returned_per_category += $returned_count;
                                         }
 
-                                        // Display total returned books for the current category, replace 0 with empty cells
                                         $display_total = ($total_returned_per_category == 0) ? '0' : $total_returned_per_category;
-                                        echo "<td><strong>$display_total</strong></td>"; // Make total bold
+                                        echo "<td><strong>$display_total</strong></td>";
                                         echo "</tr>";
                                     }
 
-                                    // Display total row
                                     echo "<tr>
                                             <td><strong>TOTAL</strong></td>";
 
-                                    $grand_return_total = 0; // Initialize grand total for all programs
+                                    $grand_return_total = 0;
 
                                     foreach ($programs as $program) {
                                         if ($program === 'FACULTY') {
-                                            // Get total books returned by faculty for the selected month
                                             $faculty_return_total_query = "SELECT COUNT(returns.id) as count
                                                                             FROM returns
                                                                             JOIN books ON returns.book_id = books.id
-                                                                            WHERE returns.student_id IS NULL";
+                                                                            WHERE returns.student_id IS NULL
+                                                                            AND YEAR(returns.date_return) = '$ selectedYear'";
 
-                                            // Adjust query based on selected month
                                             if ($selected_return_month !== 'ALL') {
                                                 $faculty_return_total_query .= " AND MONTH(returns.date_return) = '$selected_return_month'";
                                             }
@@ -408,16 +409,13 @@ while ($row = $return_query->fetch_assoc()) {
                                             $faculty_return_total_row = mysqli_fetch_assoc($faculty_return_total_result);
                                             $total_returned = $faculty_return_total_row['count'];
                                         } else {
-                                            // Get program ID based on program code
                                             $program_id = array_search($program, $program_codes);
-
-                                            // Get total books returned by students in the program for the selected month
                                             $program_return_total_query = "SELECT COUNT(returns.id) as count
                                                                             FROM returns
                                                                             JOIN students ON returns.student_id = students.id
-                                                                            WHERE students.program_id = '$program_id'";
+                                                                            WHERE students.program_id = '$program_id'
+                                                                            AND YEAR(returns.date_return) = '$selectedYear'";
 
-                                            // Adjust query based on selected month
                                             if ($selected_return_month !== 'ALL') {
                                                 $program_return_total_query .= " AND MONTH(returns.date_return) = '$selected_return_month'";
                                             }
@@ -427,15 +425,13 @@ while ($row = $return_query->fetch_assoc()) {
                                             $total_returned = $program_return_total_row['count'];
                                         }
 
-                                        // Display total returned count for each program/faculty, show 0 if applicable
-                                        $display_value = ($total_returned == 0) ? '0' : $total_returned; // Show 0
-                                        echo "<td><strong>$display_value</strong></td>"; // Make total bold
+                                        $display_value = ($total_returned == 0) ? '0' : $total_returned;
+                                        echo "<td><strong>$display_value</strong></td>";
                                         $grand_return_total += $total_returned;
                                     }
 
-                                    // Display the grand total, show 0 if applicable
-                                    $display_grand_return_total = ($grand_return_total == 0) ? '0' : $grand_return_total; // Show 0
-                                    echo "<td><strong>$display_grand_return_total</strong></td>"; // Make grand total bold
+                                    $display_grand_return_total = ($grand_return_total == 0) ? '0' : $grand_return_total;
+                                    echo "<td><strong>$display_grand_return_total</strong></td>";
                                     echo '</tr>';
                                     ?>
                                 </tbody>
@@ -446,15 +442,12 @@ while ($row = $return_query->fetch_assoc()) {
             </div>
 
             <div class="card shadow mb-4">
-                <!-- Card Header - Accordion -->
                 <a href="#collapseCardExample2" class="d-block card-header py-3" data-toggle="collapse"
                     role="button" aria-expanded="true" aria-controls="collapseCardExample2">
                     <h5 class="m-0 font-weight-bold text-primary">Popular Books</h5>
                 </a>
-                <!-- Card Content - Collapse -->
                 <div class="collapse show" id="collapseCardExample2">
                     <div class="card-body">
-                        <!-- Popular Books Card -->
                         <div class="table-responsive flex-grow-1">
                             <table id="popularBooksTable" class="table table-striped table-bordered" style="width: 100%;">
                                 <thead class="text-center">
@@ -467,14 +460,12 @@ while ($row = $return_query->fetch_assoc()) {
                                 </thead>
                                 <tbody>
                                     <?php
-                                    include 'includes/conn.php';
-
-                                    // Fetch popular books with accession number
                                     $sql = "SELECT b.title, b.author, b.accession, COUNT(br.book_id) AS borrow_count
                                             FROM borrow br
                                             INNER JOIN books b ON br.book_id = b.id
                                             GROUP BY b.title, b.author, b.accession
                                             ORDER BY borrow_count DESC";
+
                                     $query = $conn->query($sql);
 
                                     while ($row = $query->fetch_assoc()) {
@@ -492,14 +483,9 @@ while ($row = $return_query->fetch_assoc()) {
                     </div>
                 </div>
             </div>
-                    </div>
-                </div>
-            </div>
-
-            
         </div>
     </div>
-    
+
     <?php include 'includes/footer.php'; ?>
     <?php include 'includes/logout_modal.php'; ?>
     <?php include 'includes/scripts.php'; ?>
