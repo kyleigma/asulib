@@ -3,6 +3,12 @@
 <?php include 'includes/header.php'; ?>
 
 <?php
+// Redirect if no user is logged in
+if (!isset($_SESSION['student']) && !isset($_SESSION['faculty'])) {
+    header('location: index.php');
+    exit();
+}
+
 $where = '';
 if (isset($_GET['category'])) {
     $catid = $_GET['category'];
