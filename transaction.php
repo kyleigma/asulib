@@ -150,13 +150,17 @@ $result_query = $conn->query($query);
                                                         "<span class='badge badge-danger'>Borrowed</span>" : 
                                                         "<span class='badge badge-success'>Returned</span>") . "</td>";
 
-                                                if ($has_fines) {
+                                                // Display fine data only for borrowed books
+                                                if ($has_fines && $row['status'] == 1) {
                                                     $fine_row = $fines_result->fetch_assoc();
                                                     echo "<td>" . (!empty($fine_row['overdue_days']) ? $fine_row['overdue_days'] : "") . "</td>
                                                         <td>" . (!empty($fine_row['fine_amount']) ? "Php " . number_format($fine_row['fine_amount'], 2) : "") . "</td>
                                                         <td>" . (!empty($fine_row['fine_status']) ? ($fine_row['fine_status'] === 'paid' ? 
                                                             "<span class='badge badge-success'>Paid</span>" : 
                                                             "<span class='badge badge-danger'>Unpaid</span>") : "") . "</td>";
+                                                } else {
+                                                    // Leave columns blank for returned books
+                                                    echo "<td></td><td></td><td></td>";
                                                 }
 
                                                 echo "</tr>";
