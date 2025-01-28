@@ -27,10 +27,30 @@ if (isset($_GET['category'])) {
             <div>
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-
                     <div class="container">
                         <div class="row justify-content-center">
                             <div class="col-lg-8 col-md-10 col-sm-12">
+                                <?php
+                        if (isset($_SESSION['error'])) {
+                            echo "
+                                <div class='alert alert-danger alert-dismissible'>
+                                <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                <h5><i class='icon fa fa-warning'></i> Error!</h5>
+                                " . $_SESSION['error'] . "
+                                </div>
+                            ";
+                            unset($_SESSION['error']);
+                        }
+                        if (isset($_SESSION['welcome_message'])) {
+                            echo "
+                                <div class='alert alert-success alert-dismissible'>
+                                    <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                    <h5><i class='icon fa fa-check'></i> " . $_SESSION['welcome_message'] . "</h5>
+                                </div>
+                            ";
+                            unset($_SESSION['welcome_message']);
+                        }
+                    ?>
                                 <div class="card shadow mb-4">
                                     <div class="card-body">
                                         <h4 class="card-title">Browse</h4>
