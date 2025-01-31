@@ -97,7 +97,15 @@ $programs[] = 'FACULTY';
     <b><p class="text-center mb-1">DAILY CIRCULATION STATISTICS</p></b>
     <p class="text-center mb-1">(Borrowed Books)</p>
     <p class="text-center mb-1">
-        <strong>MONTH OF:</strong> <?php echo date('F', mktime(0, 0, 0, $selected_month, 1)); ?> <?php echo date('Y'); ?>
+<?php
+if (is_numeric($selected_month)) {
+    $month_name = date('F', mktime(0, 0, 0, (int)$selected_month, 1));
+} else {
+    $month_name = "All Months of"; // Handle the "ALL" case separately
+}
+
+echo "<strong>MONTH OF:</strong> " . $month_name . " " . date('Y');
+?>
     </p>
     <br>
 </div>
