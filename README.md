@@ -2,6 +2,10 @@
 
 This project is a **Library Borrowing Management System** designed for **Aklan State University - Kalibo** to help manage book lending and returning processes. The system helps both students and librarians track borrowed books, manage inventory, and ensure timely returns.
 
+![Home Page Screenshot](screenshots/2.png "Home Page UI")
+![Admin Page Screenshot](screenshots/1.png "Admin Page UI")
+
+
 ## Features
 
 - **User Registration and Login**  
