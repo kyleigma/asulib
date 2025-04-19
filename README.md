@@ -77,21 +77,6 @@ The database contains the following tables:
 4. **Admin Features:**  
    Admins can manage user accounts, view borrowing records, and generate reports on library usage.
 
-## Contributing
-
-If you'd like to contribute to this project, follow these steps:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes.
-4. Commit your changes (`git commit -am 'Add new feature'`).
-5. Push to your branch (`git push origin feature-branch`).
-6. Create a pull request.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgments
 
 - Special thanks to the developers and contributors of open-source libraries used in this project.
