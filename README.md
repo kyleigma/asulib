@@ -27,83 +27,74 @@ This project is a **Library Borrowing Management System** designed for **Aklan S
 1. Clone the repository:
    ```bash
    git clone https://github.com/username/aklan-library-management.git
+   
 
-Install required dependencies:
-
-bash
-Copy
-Edit
+### 2. Install required dependencies:
 npm install
-Set up the database:
 
-Ensure that your database server is running (e.g., MySQL, PostgreSQL).
 
-Create a new database for the system.
+### 3. Set up the database:
 
-Import the provided SQL schema to create tables.
+- Ensure that your database server is running (e.g., MySQL, PostgreSQL).
+- Create a new database for the system.
+- Import the provided SQL schema to create tables.
 
-Configure environment variables:
+### 4. Configure environment variables:
 
-Set up a .env file with the necessary environment variables (database credentials, server settings).
+- Set up a `.env` file with the necessary environment variables (database credentials, server settings).
 
-Run the application:
-
-bash
-Copy
-Edit
+### 5. Run the application:
 npm start
-Technologies Used
-Frontend: HTML, CSS, JavaScript, Bootstrap
 
-Backend: Node.js, Express.js
 
-Database: MySQL / PostgreSQL
+## Technologies Used
 
-Authentication: JWT (JSON Web Tokens)
+- **Frontend:** HTML, CSS, JavaScript, Bootstrap
+- **Backend:** Node.js, Express.js
+- **Database:** MySQL / PostgreSQL
+- **Authentication:** JWT (JSON Web Tokens)
 
-Database Schema
+## Database Schema
+
 The database contains the following tables:
 
-Users: Stores information about students and librarians.
+- **Users:** Stores information about students and librarians.
+- **Books:** Contains book details such as title, author, and ISBN.
+- **Transactions:** Tracks book borrowings and returns.
+- **Overdue_Fees:** Calculates fines for overdue books.
 
-Books: Contains book details such as title, author, and ISBN.
+## Usage
 
-Transactions: Tracks book borrowings and returns.
+1. **User Login:**  
+   Users (students and librarians) can log in to access the system using their credentials.
 
-Overdue_Fees: Calculates fines for overdue books.
+2. **Book Borrowing:**  
+   After logging in, students can browse available books and borrow them. The system tracks borrowing dates and return deadlines.
 
-Usage
-User Login:
-Users (students and librarians) can log in to access the system using their credentials.
+3. **Returning Books:**  
+   Users can return books on the due date or after the deadline (with penalties for overdue books).
 
-Book Borrowing:
-After logging in, students can browse available books and borrow them. The system tracks borrowing dates and return deadlines.
+4. **Admin Features:**  
+   Admins can manage user accounts, view borrowing records, and generate reports on library usage.
 
-Returning Books:
-Users can return books on the due date or after the deadline (with penalties for overdue books).
+## Contributing
 
-Admin Features:
-Admins can manage user accounts, view borrowing records, and generate reports on library usage.
-
-Contributing
 If you'd like to contribute to this project, follow these steps:
 
-Fork the repository.
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes.
+4. Commit your changes (`git commit -am 'Add new feature'`).
+5. Push to your branch (`git push origin feature-branch`).
+6. Create a pull request.
 
-Create a new branch (git checkout -b feature-branch).
+## License
 
-Make your changes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Commit your changes (git commit -am 'Add new feature').
+## Acknowledgments
 
-Push to your branch (git push origin feature-branch).
+- Special thanks to the developers and contributors of open-source libraries used in this project.
+- Thank you to Aklan State University for the opportunity to create this system.
 
-Create a pull request.
 
-License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-Acknowledgments
-Special thanks to the developers and contributors of open-source libraries used in this project.
-
-Thank you to Aklan State University for the opportunity to create this system.
